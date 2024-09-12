@@ -7,6 +7,13 @@ router.post('/', handleGenNewShortUrl);
 
 router.get('/analytics/:shortId', handleGetAnalytics);
 
+router.get('/home', (req, res) => {
+    res.render("Home");
+});
+
+router.get('/analytics', (req, res) => {
+    
+})
 
 
 

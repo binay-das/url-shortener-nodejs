@@ -1,8 +1,10 @@
 const express = require('express');
 const app = express();
 const urlRoute = require('./routes/url');
+const staticRoute = require('./routes/staticRouter');
 const {connectToMongoDB} = require('./connect');
 const url = require('./models/url');
+const path = require('path');
 
 connectToMongoDB('mongodb://localhost/shorturl')
 .then(() => {
@@ -13,10 +15,23 @@ connectToMongoDB('mongodb://localhost/shorturl')
 })
 
 app.use(express.json());
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "/views"));
+app.use(express.urlencoded({extended: false}));
 
 app.use('/url', urlRoute);
+app.use('/', staticRoute);
 
-app.get('/:shortId', async (req, res) => {
+
+app.get('/test', async (req, res) => {
+    const allUrls = await url.find({});
+
+    return res.render("Home", {
+        urls: allUrls
+    })
+})
+
+app.get('/url/:shortId', async (req, res) => {
     const shortId = req.params.shortId;
     const entry = await url.findOneAndUpdate(
             { shortId }, 
@@ -27,6 +42,9 @@ app.get('/:shortId', async (req, res) => {
             }
         }
     );
+    if (!entry) {
+        return res.status(404).json({ error: "URL not found for the given shortId" });
+    }
     res.redirect(entry.redirectUrl);
 })
 
